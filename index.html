@@ -429,70 +429,63 @@
         FocusGame();
       });
 
-      let StartUnityInstance;
-      let myGameInstance = null;
-      let ysdk = null;
-      let player = null;
-      let leaderboard;
-      let payments = null;
-      let initGame = false;
-      let nowFullAdOpen = false;
+         let StartUnityInstance;
+        let myGameInstance = null;
+        let ysdk = null;
+        let player = null;
+        let leaderboard;
+        let payments = null;
+        let initGame = false;
+        let nowFullAdOpen = false;
 
-
-      const script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        StartUnityInstance = function () {
-          createUnityInstance(canvas, config, (progress) => {
-            spinner.style.display = "none";
-            loading_bar_fill.style.width = `${111.2 * progress}%`;
-            Update();
-          }).then((unityInstance) => {
-            myGameInstance = unityInstance;
-            ATinstance = unityInstance;
-            loading_bg.style.display = "none";
-            Update();
-
-          }).catch((message) => {
-            console.error(message);
-            console.error("Не удалось загрузить файлы игры, пробуем заново");
-            script.onload();
-            StartUnityInstance();
-          });
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            StartUnityInstance = function () {
+                createUnityInstance(canvas, config, (progress) => {
+                    spinner.style.display = "none";
+                    progressBarEmpty.style.display = "";
+                    progressBarFull.style.width = `${100 * progress}%`;
+                }).then((unityInstance) => {
+                    myGameInstance = unityInstance;
+                    loadingCover.style.display = "none";
+                }).catch((message) => {
+                    console.error(message);
+                });
+            };
+            if (LocalHost())
+                StartUnityInstance_IfUnloaded();
         };
-        if (LocalHost())
-          StartUnityInstance_IfUnloaded();
-      };
 
-      function StartUnityInstance_IfUnloaded() {
-        if (spinner.style.display !== "none")
-          StartUnityInstance();
-      }
+        function StartUnityInstance_IfUnloaded() {
+            if (spinner.style.display !== "none")
+                StartUnityInstance();
+        }
 
-      function LocalHost() {
-        var host = window.location.hostname;
-        if(host == "localhost" || host == "127.0.0.1")
-          return true;
-        else return false;
-      }
+        function LocalHost() {
+            var host = window.location.hostname;
+            if (host == "localhost" || host == "127.0.0.1")
+                return true;
+            else return false;
+        }
+
+        setTimeout(StartUnityInstance_IfUnloaded, 5000);
 
 
-      InitYSDK();
-      async function InitYSDK() {
-        try {
-          if (LocalHost()) return;
+        InitYSDK();
+        async function InitYSDK() {
+            try {
+                if (LocalHost()) return;
 
-            console.log('Init Yandex SDK');
-            ysdk = await YaGames.init();
+                console.log('Init Yandex SDK');
+                ysdk = await YaGames.init();
 
-            FullAdShow(); // First ad true
+                InitPayments();
+                // First ad false
 
-            // Additional init modules
+                // Additional init modules
 cloudSaves = await LoadCloud();
 console.log('Init Storage ysdk');
-
-paymentsData = await GetPayments();
-console.log('Init Payments ysdk');
 
 environmentData = await RequestingEnvironmentData();
 console.log('Init Envir ysdk');
@@ -500,22 +493,25 @@ console.log('Init Envir ysdk');
 playerData = await InitPlayer();
 console.log('Init Player ysdk');
 
+flasgsData = await GetFlags();
+console.log('Init Flags ysdk');
+
+
             } catch (e) {
-              console.error('CRASH Initialization SDK: ', e);
+                console.error('CRASH Initialization SDK: ', e);
             }
-          StartUnityInstance_IfUnloaded();
+
+            StartUnityInstance_IfUnloaded();
         }
 
-      function InitGame() {
-        console.log('Init Game Success');
-        initGame = true;
+        function InitGame() {
+            console.log('Init Game Success');
+            initGame = true;
 
-        if(nowFullAdOpen == true && myGameInstance != null) {
-          myGameInstance.SendMessage('YandexGame', 'OpenFullAd');
+            if (nowFullAdOpen == true && myGameInstance != null) {
+                myGameInstance.SendMessage('YandexGame', 'OpenFullAd');
+            }
         }
-
-        // Additional start modules
-      }
 
       function FullAdShow() {
             try {
