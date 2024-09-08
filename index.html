@@ -36,112 +36,131 @@
 </div>
 <div id="unity-warning"> </div>
 </div>
-<script src="/sdk.js"></script>
 <script src="https://app-289497.games.s3.yandex.net/sdk/_/v2.f7e6e3b1b621c40bbb17.js"></script>
 <script>
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var warningBanner = document.querySelector("#unity-warning");
-	
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
+  var container = document.querySelector("#unity-container");
+  var canvas = document.querySelector("#unity-canvas");
+  var loadingBar = document.querySelector("#unity-loading-bar");
+  var progressBarFull = document.querySelector("#unity-progress-bar-full");
+  var warningBanner = document.querySelector("#unity-warning");
+
+  function unityShowBanner(msg, type) {
+    function updateBannerVisibility() {
+      warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+    }
+    var div = document.createElement('div');
+    div.innerHTML = msg;
+    warningBanner.appendChild(div);
+    if (type == 'error') div.style = 'background: red; padding: 10px;';
+    else {
+      if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+      setTimeout(function() {
+        warningBanner.removeChild(div);
         updateBannerVisibility();
-      }
+      }, 5000);
+    }
+    updateBannerVisibility();
+  }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/MomImSleeping!.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/MomImSleeping!.data.br",
-        frameworkUrl: buildUrl + "/MomImSleeping!.framework.js.br",
-        codeUrl: buildUrl + "/MomImSleeping!.wasm.br",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "com.MomImSleeping!.Layaa",
-        productName: "MomImSleeping!",
-        productVersion: "1.0",
-        showBanner: unityShowBanner,
-      };
+  var buildUrl = "Build";
+  var loaderUrl = buildUrl + "/MomImSleeping!.loader.js";
+  var config = {
+    dataUrl: buildUrl + "/MomImSleeping!.data.br",
+    frameworkUrl: buildUrl + "/MomImSleeping!.framework.js.br",
+    codeUrl: buildUrl + "/MomImSleeping!.wasm.br",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "com.MomImSleeping!.Layaa",
+    productName: "MomImSleeping!",
+    productVersion: "1.0",
+    showBanner: unityShowBanner,
+  };
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-      } else {
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-      }
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    var meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+    container.className = "unity-mobile";
+    canvas.className = "unity-mobile";
+  } else {
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+  }
 
-      loadingBar.style.display = "block";
+  loadingBar.style.display = "block";
 
-      var myGameInstance = null;
-	  var player = null;
-	  var payments = null;
-	  
-		YaGames.init().then(ysdk => {
-			window.ysdk = ysdk;   
-			ysdk.getPlayer({ scopes: false }).then(_player => {
-			player = _player;
-			
-			ysdk.getPayments({ signed: true }).then(_payments => {
-				payments = _payments;
-							
-		    var script = document.createElement("script");
-			script.src = loaderUrl;
-			script.onload = () => {
-		   createUnityInstance(canvas, config, (progress) => {
-			 progressBarFull.style.width = 100 * progress + "%";
-		   }).then((unityInstance) => {  
-			 myGameInstance = unityInstance;
-			 loadingBar.style.display = "none";   
-			  ysdk.adv.showFullscreenAdv({
-			  callbacks: {
-			  onClose: function(wasShown) {
-			  myGameInstance.SendMessage("Audio", "OnAudio");
-			 },
-			  onOpen: function(shown) {
-			  myGameInstance.SendMessage("Audio", "OffAudio");
-			 },
-			  onError: function(error) {
-			 }
-			}
-			});
-			
-			document.addEventListener("visibilitychange", function() {
-			if (document.visibilityState === "hidden") {
-			myGameInstance.SendMessage("Audio", "OffFocus");
-			} else {
-			myGameInstance.SendMessage("Audio", "OnFocus");
-			}
-			});
-			
-		   }).catch((message) => {
-		   });
-			};
-			
-			document.body.appendChild(script);					
-				}).catch(err => {
-				});
-							
-			}).catch(err => {
-			});				
-		  });
-    </script>
+  var myGameInstance = null;
+  var player = null;
+  var payments = null;
+  var enableYaGames = false; // Flag to enable/disable YaGames
+
+  if (enableYaGames) {
+    YaGames.init().then(ysdk => {
+      window.ysdk = ysdk;
+      ysdk.getPlayer({ scopes: false }).then(_player => {
+        player = _player;
+
+        ysdk.getPayments({ signed: true }).then(_payments => {
+          payments = _payments;
+
+          var script = document.createElement("script");
+          script.src = loaderUrl;
+          script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+              progressBarFull.style.width = 100 * progress + "%";
+            }).then((unityInstance) => {
+              myGameInstance = unityInstance;
+              loadingBar.style.display = "none";
+              ysdk.adv.showFullscreenAdv({
+                callbacks: {
+                  onClose: function(wasShown) {
+                    myGameInstance.SendMessage("Audio", "OnAudio");
+                  },
+                  onOpen: function(shown) {
+                    myGameInstance.SendMessage("Audio", "OffAudio");
+                  },
+                  onError: function(error) {}
+                }
+              });
+
+              document.addEventListener("visibilitychange", function() {
+                if (document.visibilityState === "hidden") {
+                  myGameInstance.SendMessage("Audio", "OffFocus");
+                } else {
+                  myGameInstance.SendMessage("Audio", "OnFocus");
+                }
+              });
+
+            }).catch((message) => {});
+          };
+
+          document.body.appendChild(script);
+        }).catch(err => {});
+      }).catch(err => {});
+    });
+  } else {
+    // YaGames is disabled, just load Unity game
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        myGameInstance = unityInstance;
+        loadingBar.style.display = "none";
+
+        document.addEventListener("visibilitychange", function() {
+          if (document.visibilityState === "hidden") {
+            myGameInstance.SendMessage("Audio", "OffFocus");
+          } else {
+            myGameInstance.SendMessage("Audio", "OnFocus");
+          }
+        });
+      }).catch((message) => {});
+    };
+    document.body.appendChild(script);
+  }
+</script>
+
 </body>
 </html>
