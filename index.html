@@ -408,9 +408,17 @@
     }
 
         function _GetLang(id) {
-      // Reklam gösterimini pasif hale getiriyoruz, fonksiyonun içi boş bırakılıyor
-      console.log('showRewardedAd fonksiyonu pasif hale getirildi.');
+        	
+        function _GetLang() {
+            var lang = ysdk.environment.i18n.lang;
+            var bufferSize = lengthBytesUTF8(lang) + 1;
+            var buffer = _malloc(bufferSize);
+            stringToUTF8(lang, buffer, bufferSize);
+            return buffer
+        }
     }
+
+
 </script>
 </body>
 </html>
